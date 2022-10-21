@@ -39,6 +39,7 @@
 # Feel free to modify this file to suit your needs.
 ---
 version: '3'
+
 x-airflow-common:
   &airflow-common
   # In order to add custom dependencies or upgrade provider packages you can use your extended image.
@@ -73,17 +74,24 @@ x-airflow-common:
     postgres:
       condition: service_healthy
 
+x-spark-common:
+  &spark-common
+  build:
+    context: .
+    dockerfile: ./Spark_Docker
+
 services:
   postgres:
+    container_name: airflow_postgresql
     image: postgres:13
     environment:
-      POSTGRES_USER:  
+      POSTGRES_USER: airflow
       POSTGRES_PASSWORD: airflow
       POSTGRES_DB: airflow
     ports: 
       - 5432:5432
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - ./postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 5s
@@ -91,6 +99,7 @@ services:
     restart: always
 
   redis:
+    container_name: airflow_cache
     image: redis:latest
     expose:
       - 6379
@@ -103,6 +112,7 @@ services:
 
   airflow-webserver:
     <<: *airflow-common
+    container_name: airflow_webserver
     command: webserver
     ports:
       - 8080:8080
@@ -119,6 +129,7 @@ services:
 
   airflow-scheduler:
     <<: *airflow-common
+    container_name: airflow_scheduler
     command: scheduler
     healthcheck:
       test: ["CMD-SHELL", 'airflow jobs check --job-type SchedulerJob --hostname "$${HOSTNAME}"']
@@ -133,6 +144,7 @@ services:
 
   airflow-worker:
     <<: *airflow-common
+    container_name: airflow_celery_worker
     command: celery worker
     healthcheck:
       test:
@@ -277,7 +289,8 @@ services:
         condition: service_completed_successfully
 
   spark:
-    image: bitnami/spark:latest
+    <<: *spark-common
+    container_name: spark_master
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -288,8 +301,10 @@ services:
       - '8090:8080'
     volumes:
       - ../spark/logs:/bitnami/spark
+
   spark-worker:
-    image: bitnami/spark:latest
+    <<: *spark-common
+    container_name: spark_worker
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077

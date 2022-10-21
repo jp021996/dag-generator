@@ -8,3 +8,15 @@ dev-setup:
 		 pip install --upgrade pip \
 		pip install -r requirements.txt; \
 	)
+
+up:
+	cd docker; \
+	docker-compose up
+
+up-detached:
+	cd docker; \
+	docker-compose up -d
+
+down:
+	cd docker; \
+	docker-compose down

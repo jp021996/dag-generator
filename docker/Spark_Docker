@@ -1,0 +1,4 @@
+FROM bitnami/spark:3.3
+USER root
+# RUN apt-get update; apt-get install -y curl
+# RUN curl https://jdbc.postgresql.org/download/postgresql-42.2.26.jar --output /opt/bitnami/spark/jars/postgresql-42.2.26.jar
