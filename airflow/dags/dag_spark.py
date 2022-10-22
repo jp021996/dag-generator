@@ -12,4 +12,5 @@ with airflow.DAG('dag_teste_spark',
         task_id='extract_postgresql',
         conn_id='spark_default',
         application="plugins/spark_jobs/postgres_extract.py",
+        packages="org.postgresql:postgresql:42.5.0"
     )
