@@ -316,5 +316,12 @@ services:
       - SPARK_SSL_ENABLED=no
     volumes:
       - ../spark/logs:/bitnami/spark
+      - ../data_lake/landding:/landding
+      - ../data_lake/bronze:/bronze
+      - ../data_lake/silver:/silver
+      - ../data_lake/gold:/gold
+    depends_on:
+      spark:
+        condition: service_healthy
 volumes:
   postgres-db-volume:
