@@ -91,7 +91,7 @@ services:
     ports: 
       - 5432:5432
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - ./postgres-db-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 5s
@@ -267,30 +267,12 @@ services:
       - -c
       - airflow
 
-  # You can enable flower by adding "--profile flower" option e.g. docker-compose --profile flower up
-  # or by explicitly targeted on the command line e.g. docker-compose up flower.
-  # See: https://docs.docker.com/compose/profiles/
-  flower:
-    <<: *airflow-common
-    command: celery flower
-    profiles:
-      - flower
-    ports:
-      - 5555:5555
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:5555/"]
-      interval: 10s
-      timeout: 10s
-      retries: 5
-    restart: always
-    depends_on:
-      <<: *airflow-common-depends-on
-      airflow-init:
-        condition: service_completed_successfully
-
   spark:
     <<: *spark-common
     container_name: spark_master
+    user: root
+    networks:
+      - spark-network
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -300,11 +282,15 @@ services:
     ports:
       - '8090:8080'
     volumes:
-      - ../spark/logs:/bitnami/spark
+      - ../data_lake:/data:rw
+    # depends_on:
 
   spark-worker:
     <<: *spark-common
     container_name: spark_worker
+    networks:
+      - spark-network
+    user: root
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077
@@ -315,13 +301,14 @@ services:
       - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
       - SPARK_SSL_ENABLED=no
     volumes:
-      - ../spark/logs:/bitnami/spark
-      - ../data_lake/landding:/landding
-      - ../data_lake/bronze:/bronze
-      - ../data_lake/silver:/silver
-      - ../data_lake/gold:/gold
-    depends_on:
-      spark:
-        condition: service_healthy
+      - ../data_lake:/data:rw
+    # depends_on:
+    #   spark:
+    #     condition: service_healthy
+
+networks:
+  spark-network:
+    driver: bridge
+
 volumes:
   postgres-db-volume:
