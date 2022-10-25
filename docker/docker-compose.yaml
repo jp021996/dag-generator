@@ -91,7 +91,7 @@ services:
     ports: 
       - 5432:5432
     volumes:
-      - ./postgres-db-volume:/var/lib/postgresql/data
+      - postgres-airflow-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 5s
@@ -311,4 +311,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-db-volume:
+  postgres-airflow-volume:
