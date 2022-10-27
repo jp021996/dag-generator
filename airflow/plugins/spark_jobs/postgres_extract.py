@@ -6,7 +6,7 @@ spark = SparkSession.builder \
 
 df = spark.read \
     .format("jdbc") \
-    .option("url", "jdbc:postgresql://host.docker.internal:5432/airflow") \
+    .option("url", "jdbc:postgresql://postgres:5432/airflow") \
     .option("dbtable", "public.dag") \
     .option("user", "airflow") \
     .option("password", "airflow") \

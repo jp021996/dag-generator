@@ -97,7 +97,7 @@ services:
     ports: 
       - 5432:5432
     volumes:
-      - postgres-db-volume:/var/lib/postgresql/data
+      - postgres-airflow-volume:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "airflow"]
       interval: 5s
@@ -267,6 +267,9 @@ services:
   spark:
     <<: *spark-common
     container_name: spark_master
+    user: root
+    networks:
+      - spark-network
     environment:
       - SPARK_MODE=master
       - SPARK_RPC_AUTHENTICATION_ENABLED=no
@@ -281,6 +284,9 @@ services:
   spark-worker:
     <<: *spark-common
     container_name: spark_worker
+    networks:
+      - spark-network
+    user: root
     environment:
       - SPARK_MODE=worker
       - SPARK_MASTER_URL=spark://spark:7077
