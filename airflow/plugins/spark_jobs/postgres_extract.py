@@ -1,6 +1,7 @@
 from pyspark.sql import SparkSession
 
 spark = SparkSession.builder \
+                    .master("local[*]") \
                     .getOrCreate()
 
 df = spark.read \
@@ -12,4 +13,4 @@ df = spark.read \
     .option("driver", "org.postgresql.Driver") \
     .load()
 
-df.write.parquet("file:///bronze/postgresql/")
+df.write.parquet("file:///data/bronze/postgresql/")
